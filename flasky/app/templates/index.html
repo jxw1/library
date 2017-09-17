@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}图书馆主页{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
+</div>
+<div>
+    {{ wtf.quick_form(form) }}
+</div>
+{% if books != [] %}
+<ul class="posts">
+    {% for book in books %}
+    <li class="post">
+        {% if current_user.is_lib() %}
+        <div class="post-thumbnail">
+            <a class="btn btn-danger">Delete</a>
+        </div>
+        {% endif %}
+        <div class="post-content">
+            <div class="post-date">Number : {{ book.number}}</div>
+           <a href="{{ url_for('main.book', book_id=book.id) }}"> <div class="post-author">Bookname: {{ book.bookname }}   Author:{{ book.author }}</div> </a>
+            <div class="post-body">introduction: {{ book.info }}</div>
+        </div>
+    </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}
