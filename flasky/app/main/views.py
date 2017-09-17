@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, abort, flash
+from flask import render_template, redirect, url_for, session, abort, flash
 from . import main
 from ..import db
 from ..models import Role, User, Book
@@ -13,6 +13,7 @@ def index(books=[]):
     form = SearchForm()
     if form.validate_on_submit():
         bookname = form.input_.data
+        session['input_data'] = bookname
         books = Book.query.filter(Book.bookname.ilike('%'+bookname+'%')).all()
         form.input_.data = None
         return render_template('index.html', form=form, books=books)
@@ -25,10 +26,19 @@ def user(username):
     return render_template('user.html', user=user)
 
 
-@main.route('/book/<book_id>')
+@main.route('/book/<book_id>', methods=['GET', 'POST'])
 def book(book_id):
     book = Book.query.filter_by(id=book_id).first_or_404()
     return render_template('book_info.html', book=book)
+
+
+@main.route('/del_book/<book_id>',  methods=['GET', 'POST'])
+@login_required
+@lib_required
+def del_book(book_id):
+    book = Book.query.filter_by(id=book_id).first_or_404()
+    db.session.delete(book)
+    return redirect(url_for('main.index'))
 
 
 @main.route('/edit-profile', methods=['GET', 'POST'])

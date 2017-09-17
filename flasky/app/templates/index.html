@@ -16,7 +16,7 @@
     <li class="post">
         {% if current_user.is_lib() %}
         <div class="post-thumbnail">
-            <a class="btn btn-danger">Delete</a>
+            <a class="btn btn-danger" href="{{ url_for('main.del_book', book_id=book.id) }}">Del</a>
         </div>
         {% endif %}
         <div class="post-content">
