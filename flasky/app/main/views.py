@@ -11,7 +11,6 @@ from ..decorators import admin_required, lib_required
 @main.route('/', methods=['GET', 'POST'])
 def index(books=[]):
     form = SearchForm()
-    form.input_.data = session['input_data']
     if form.validate_on_submit():
         bookname = form.input_.data
         session['input_data'] = bookname
@@ -37,9 +36,9 @@ def book(book_id):
 @lib_required
 def del_book(book_id):
     book = Book.query.filter_by(id=book_id).first_or_404()
-    bookname=book.bookname
+    bookname = book.bookname
     db.session.delete(book)
-    flash(" the book: "+ bookname +" has been deleted")
+    flash(" the book: " + bookname + " has been deleted")
     return redirect(url_for('main.index'))
 
 

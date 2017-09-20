@@ -5,5 +5,19 @@
 
 {% block page_content %}
 
+<div class="page-header">
+    <p> 书名: {{ book.bookname }} </p>
+    <p> 作者: {{ book.author }} </p>
+    {% if book.publisher %}
+    <p> 出版社: {{ book.publisher }} </p>
+    {% endif %}
+    <p> ISBN: {{ book.ISBN }}</p>
+    {% if book.info %}
+    <p> 书籍介绍: {{ book.info }} </p>
+    {% endif %}
+    {% if current_user.is_lib() %}
+    <a class="btn btn-danger" href="">编辑书籍</a>
+    {% endif %}
 
+</div>
 {% endblock %}
