@@ -3,7 +3,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 from . import db, login_manager
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Permission:
@@ -59,8 +59,8 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
     realname = db.Column(db.String(64))
-    confirmed = db.Column(db.Boolean, default=False)
-    borrowed_number = db.Column(db.Integer, default=5)
+    confirmed = db.Column(db.Boolean, default=False) # 账号是否已经确认过
+    borrowed_number = db.Column(db.Integer, default=0) # 已借的书籍数量
     # backref属性反向关联使得record可以直接通过user属性获取相应的user对象
     Records = db.relationship('Record', backref=db.backref('user', lazy='joined'),
                                         lazy='dynamic',
@@ -100,6 +100,16 @@ class User(UserMixin, db.Model):
         self.confirmed = True
         db.session.add(self)
         return True
+
+    def can_borrow(self):
+        records = self.Records
+        for record in records:
+            if(record.returned is False and (datetime.now() > record.end_time)):
+                return False
+        if(self.confirmed and self.borrowed_number <= 5):
+            return True
+        else:
+            return False
 
     def generate_reset_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
@@ -176,12 +186,13 @@ class Book(db.Model):
     bookname = db.Column(db.String(128), index=True)
     info = db.Column(db.Text())
     author = db.Column(db.String(128))
-    number = db.Column(db.Integer, default=0)
-    subject = db.Column(db.String(128))
+    totalNumber = db.Column(db.Integer, default=0)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'))
     publisher = db.Column(db.String(256))
     ISBN = db.Column(db.String(128))
-    # 反向关系给Record添加book属性,Record可以直接获取相应Book对象
-    Records = db.relationship('Record', backref=db.backref('book', lazy='joined'),
+    location = db.Column(db.String(128))
+    # 反向关系给Book_entities添加book属性, book_entities可以直接获取相应Book对象
+    book_entities = db.relationship('Book_entity', backref=db.backref('book', lazy='joined'),
                                         lazy='dynamic',
                                         cascade='all, delete-orphan')
 
@@ -189,7 +200,42 @@ class Book(db.Model):
 class Record(db.Model):
     __tablename__ = "records"
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), primary_key=True)
+    sequence = db.Column(db.Integer, db.ForeignKey('book_entities.sequence'), primary_key=True)
     borrow_time = db.Column(db.DateTime, default=datetime.now)
     end_time = db.Column(db.DateTime)
     returned = db.Column(db.Boolean, default=False)
+    book_id = db.Column(db.Integer)
+
+
+class Book_entity(db.Model):
+    __tablename__ = "book_entities"
+    sequence = db.Column(db.Integer, primary_key=True)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
+    confirmed = db.Column(db.Boolean, default=True)
+    # 反向关系给Record添加book_entity属性,Record可以直接获取相应book_entity对象
+    Records = db.relationship('Record', backref=db.backref('book_entity', lazy='joined'),
+                                        lazy='dynamic',
+                                        cascade='all, delete-orphan')
+
+    def can_borrow(self):
+        if(self.confirmed):
+            return True
+        else:
+            return False
+
+    def create_record(self, book_id, user_id):
+        borrow_time = datetime.now()
+        end_time = datetime.now() + timedelta(days=15)
+        record = Record(sequence=self.sequence, user_id=user_id,
+                        book_id=book_id, borrow_time=borrow_time,
+                        end_time=end_time)
+        db.session.add(record)
+
+
+class subject(db.Model):
+    __tablename__ = 'subjects'
+    id = db.Column(db.Integer, primary_key=True)
+    subjectname = db.Column(db.String(64))
+    books = db.relationship('Book', backref=db.backref('subject', lazy="joined"),
+                                                        lazy='dynamic', 
+                                                        cascade="all, delete-orphan")

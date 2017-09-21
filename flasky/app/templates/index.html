@@ -20,9 +20,9 @@
         </div>
         {% endif %}
         <div class="post-content">
-            <div class="post-date">Number : {{ book.number}}</div>
-           <a href="{{ url_for('main.book', book_id=book.id) }}"> <div class="post-author">Bookname: {{ book.bookname }}   Author:{{ book.author }}</div> </a>
-            <div class="post-body">introduction: {{ book.info }}</div>
+            <div class="post-date">TotalNumber : {{ book.totalNumber}}</div>
+           <a href="{{ url_for('main.book', book_id=book.id) }}"> <div class="post-author">BookName: {{ book.bookname }}   Author:{{ book.author }}</div> </a>
+            <div class="post-body">Introduction: {{ book.info }}</div>
         </div>
     </li>
 {% endfor %}

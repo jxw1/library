@@ -15,9 +15,12 @@
     {% if book.info %}
     <p> 书籍介绍: {{ book.info }} </p>
     {% endif %}
+    <p> 馆藏副本: {{ book.totalNumber }} </p>
+    <p> 可借副本: {{ nowNumber }}</p>
+</div>
     {% if current_user.is_lib() %}
-    <a class="btn btn-danger" href="">编辑书籍</a>
+    <a class="btn btn-danger" href="{{ url_for('main.edit_book', book_id=book.id) }}">Modify Book</a>
     {% endif %}
 
-</div>
+
 {% endblock %}

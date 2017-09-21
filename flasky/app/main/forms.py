@@ -48,10 +48,26 @@ class AddBookForm(FlaskForm):
     bookname = StringField('book name', validators=[Required()])
     info = TextAreaField('book info', validators=[Required()])
     author = StringField('author name', validators=[Required()])
-    number = IntegerField('the number of book', validators=[Required()])
-    subject = StringField('the subject of book')
+    totalnumber = IntegerField('the totalnumber of book', validators=[Required()])
+    subject_id = IntegerField('the subject_id of book')
     ISBN = StringField('ISBN', validators=[Required()])
     publisher = StringField('publisher', validators=[Required()])
+    location = StringField('the location of the book', validators=[Required()])
+    submit = SubmitField('submit')
+
+    def validate_ISBN(self, field):
+        if Book.query.filter_by(ISBN=field.data).first():
+            raise ValidationError('the book already existed.')
+
+
+class EditBookForm(FlaskForm):
+    bookname = StringField('book name', validators=[Required()])
+    info = TextAreaField('book info', validators=[Required()])
+    author = StringField('author name', validators=[Required()])
+    subject_id = IntegerField('the subject_id of book')
+    ISBN = StringField('ISBN', validators=[Required()])
+    publisher = StringField('publisher', validators=[Required()])
+    location = StringField('the location of the book', validators=[Required()])
     submit = SubmitField('submit')
 
 
@@ -60,3 +76,10 @@ class SearchForm(FlaskForm):
     # type = SelectField
     input_ = StringField('book name', validators=[Required()])
     submit = SubmitField('search book')
+
+
+class BorrowForm(FlaskForm):
+    sequence = IntegerField('the sequence number of the book', validators=[Required()])
+    book_id = IntegerField('the book_id of book', validators=[Required()])
+    user_id = IntegerField('the id of the borrower', validators=[Required()])
+    submit = SubmitField('submit')

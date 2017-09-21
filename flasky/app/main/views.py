@@ -1,9 +1,9 @@
 from flask import render_template, redirect, url_for, session, abort, flash
 from . import main
 from ..import db
-from ..models import Role, User, Book
+from ..models import Role, User, Book, Book_entity
 from .forms import EditProfileForm, EditProfileAdminForm,\
-    AddBookForm, SearchForm
+    AddBookForm, SearchForm, EditBookForm, BorrowForm
 from flask_login import login_required, current_user
 from ..decorators import admin_required, lib_required
 
@@ -28,7 +28,12 @@ def user(username):
 @main.route('/book/<book_id>', methods=['GET', 'POST'])
 def book(book_id):
     book = Book.query.filter_by(id=book_id).first_or_404()
-    return render_template('book_info.html', book=book)
+    book_entities = book.book_entities.all()
+    nowNumber = 0
+    for book_entity in book_entities:
+        if(book_entity.confirmed):
+            nowNumber += 1
+    return render_template('book_info.html', book=book, nowNumber=nowNumber)
 
 
 @main.route('/del_book/<book_id>',  methods=['GET', 'POST'])
@@ -40,6 +45,34 @@ def del_book(book_id):
     db.session.delete(book)
     flash(" the book: " + bookname + " has been deleted")
     return redirect(url_for('main.index'))
+
+
+@main.route('/edit_book/<book_id>', methods=['GET', 'POST'])
+@login_required
+@lib_required
+def edit_book(book_id):
+    book = Book.query.filter_by(id=book_id).first_or_404()
+    form = EditBookForm()
+    oldname = book.bookname
+    if form.validate_on_submit():
+        book.bookname = form.bookname.data
+        book.info = form.info.data
+        book.author = form.author.data
+        book.publisher = form.publisher.data
+        book.subject_id = form.subject_id.data
+        book.location = form.location.data
+        book.ISBN = form.ISBN.data
+        db.session.add(book)
+        flash("the book: <"+oldname+"> has been modified ")
+        return redirect(url_for('main.book', book_id=book.id))
+    form.bookname.data = book.bookname
+    form.info.data = book.info
+    form.author.data = book.author
+    form.publisher.data = book.publisher
+    form.subject_id.data = book.subject_id
+    form.location.data = book.location
+    form.ISBN.data = book.ISBN
+    return render_template('edit_book.html', form=form, book=book)
 
 
 @main.route('/edit-profile', methods=['GET', 'POST'])
@@ -85,13 +118,47 @@ def add_book():
     form = AddBookForm()
     if form.validate_on_submit():
         book = Book(bookname=form.bookname.data,
-                    number=form.number.data,
-                    subject=form.subject.data,
+                    totalNumber=form.totalnumber.data,
+                    subject_id=form.subject_id.data,
                     author=form.author.data,
                     ISBN=form.ISBN.data,
                     info=form.info.data,
-                    publisher=form.publisher.data)
+                    publisher=form.publisher.data,
+                    location=form.location.data)
         db.session.add(book)
+        db.session.commit()
+        for i in range(book.totalNumber):
+            book_entity = Book_entity(book_id=book.id)
+            db.session.add(book_entity)
         flash("the book has been added")
         return redirect(url_for('main.add_book'))
     return render_template('add_book.html', form=form)
+
+
+@main.route('/borrow_book', methods=['GET', 'POST'])
+@login_required
+@lib_required
+def borrow_book():
+    form = BorrowForm()
+    if form.validate_on_submit():
+        sequenceNumber = form.sequence.data
+        book_id = form.book_id.data
+        user_id = form.user_id.data
+        bookCopy = Book_entity.query.get_or_404(sequenceNumber)
+        if(bookCopy.can_borrow()):
+            user = User.query.get_or_404(user_id)
+            if(user.can_borrow()):
+                bookCopy.confirmed = False
+                user.borrowed_number += 1
+                bookCopy.create_record(book_id, user_id)
+                db.session.add(user)
+                db.session.add(bookCopy)
+                flash("borrow successfully")
+                redirect(url_for('main.borrow_book'))
+            else:
+                flash('''the person can't borrow book''')
+                redirect(url_for('main.borrow_book'))
+        else:
+            flash("the book hasn't been returned")
+            redirect(url_for('main.borrow_book'))
+    return render_template('borrow_book.html', form=form)
