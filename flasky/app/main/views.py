@@ -154,11 +154,11 @@ def borrow_book():
                 db.session.add(user)
                 db.session.add(bookCopy)
                 flash("borrow successfully")
-                redirect(url_for('main.borrow_book'))
+                return redirect(url_for('main.borrow_book'))
             else:
                 flash('''the person can't borrow book''')
-                redirect(url_for('main.borrow_book'))
+                return redirect(url_for('main.borrow_book'))
         else:
             flash("the book hasn't been returned")
-            redirect(url_for('main.borrow_book'))
+            return redirect(url_for('main.borrow_book'))
     return render_template('borrow_book.html', form=form)
