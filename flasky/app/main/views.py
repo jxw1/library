@@ -3,7 +3,7 @@ from . import main
 from ..import db
 from ..models import Role, User, Book, Book_entity
 from .forms import EditProfileForm, EditProfileAdminForm,\
-    AddBookForm, SearchForm, EditBookForm, BorrowForm
+    AddBookForm, SearchForm, EditBookForm, BorrowForm, ReturnForm
 from flask_login import login_required, current_user
 from ..decorators import admin_required, lib_required
 
@@ -22,7 +22,9 @@ def index(books=[]):
 @main.route('/user/<username>')
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    return render_template('user.html', user=user)
+    # 此处可以增加用户借书记录查看
+    records = user.Records
+    return render_template('user.html', user=user, records=records)
 
 
 @main.route('/book/<book_id>', methods=['GET', 'POST'])
@@ -142,9 +144,9 @@ def borrow_book():
     form = BorrowForm()
     if form.validate_on_submit():
         sequenceNumber = form.sequence.data
-        book_id = form.book_id.data
-        user_id = form.user_id.data
         bookCopy = Book_entity.query.get_or_404(sequenceNumber)
+        book_id = bookCopy.book_id
+        user_id = form.user_id.data
         if(bookCopy.can_borrow()):
             user = User.query.get_or_404(user_id)
             if(user.can_borrow()):
@@ -162,3 +164,25 @@ def borrow_book():
             flash("the book hasn't been returned")
             return redirect(url_for('main.borrow_book'))
     return render_template('borrow_book.html', form=form)
+
+
+@main.route('/return_book', methods=['GET', 'POST'])
+@login_required
+@lib_required
+def return_book():
+    form = ReturnForm()
+    if form.validate_on_submit():
+        sequenceNumber = form.sequence.data
+        bookReturned = Book_entity.query.get_or_404(sequenceNumber)
+        if(bookReturned.can_return()):
+            if(bookReturned.book_return()):
+                flash("return book successful")
+                return redirect(url_for('main.return_book'))
+            else:
+                flash("return book failed")
+                return redirect(url_for('main.return_book'))
+        else:
+            flash("the book is already returned")
+            return redirect(url_for('main.return_book'))
+    else:
+        return render_template('return_book.html', form=form)

@@ -4,14 +4,20 @@
 
 {% block page_content %}
 <div class="page-header">
+    <div class="profile-header">
     <h1>{{ user.username }}</h1>
     {% if user.realname %}
     <p>
-        {{ user.realname }}
+      RealName: {{ user.realname }}
     </p>
     {% endif %}
     {% if current_user.is_administrator() %}
     <p><a href="mailto:{{ user.email }}">{{ user.email }}</a> </p>
+    {% endif %}
+    {% if user == current_user %}
+    <p>
+        
+    </p>
     {% endif %}
     <p>
         {% if user == current_user %}
@@ -21,5 +27,6 @@
         <a class="btn btn-danger" href="{{ url_for('.edit_profile_admin', id=user.id) }}">Edit Profile[ADMIN]</a>
         {% endif %}
     </p>
+    </div>
 </div>
 {% endblock %}

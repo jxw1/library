@@ -231,6 +231,24 @@ class Book_entity(db.Model):
                         end_time=end_time)
         db.session.add(record)
 
+    def can_return(self):
+        if(self.confirmed):
+            return False
+        else:
+            return True
+
+    def book_return(self):
+        for record in self.Records:
+            if(record.returned is False):
+                self.confirmed = True
+                db.session.add(self)
+                record.returned = True
+                record.user.borrowed_number -= 1
+                db.session.add(record)
+                db.session.add(record.user)
+                return True
+        return False
+
 
 class subject(db.Model):
     __tablename__ = 'subjects'

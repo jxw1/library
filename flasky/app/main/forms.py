@@ -80,6 +80,10 @@ class SearchForm(FlaskForm):
 
 class BorrowForm(FlaskForm):
     sequence = IntegerField('the sequence number of the book', validators=[Required()])
-    book_id = IntegerField('the book_id of book', validators=[Required()])
     user_id = IntegerField('the id of the borrower', validators=[Required()])
+    submit = SubmitField('submit')
+
+
+class ReturnForm(FlaskForm):
+    sequence = IntegerField('the sequence number of the book', validators=[Required()])
     submit = SubmitField('submit')
