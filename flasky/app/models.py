@@ -59,8 +59,8 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
     realname = db.Column(db.String(64))
-    confirmed = db.Column(db.Boolean, default=False) # 账号是否已经确认过
-    borrowed_number = db.Column(db.Integer, default=0) # 已借的书籍数量
+    confirmed = db.Column(db.Boolean, default=False)  # 账号是否已经确认过
+    borrowed_number = db.Column(db.Integer, default=0)  # 已借的书籍数量
     # backref属性反向关联使得record可以直接通过user属性获取相应的user对象
     Records = db.relationship('Record', backref=db.backref('user', lazy='joined'),
                                         lazy='dynamic',

@@ -71,7 +71,7 @@ class EditBookForm(FlaskForm):
     submit = SubmitField('submit')
 
 
-class SearchForm(FlaskForm):
+class SearchBookForm(FlaskForm):
     # choices = [('bookname')]
     # type = SelectField
     input_ = StringField('book name', validators=[Required()])
@@ -86,4 +86,9 @@ class BorrowForm(FlaskForm):
 
 class ReturnForm(FlaskForm):
     sequence = IntegerField('the sequence number of the book', validators=[Required()])
+    submit = SubmitField('submit')
+
+
+class SearchUserForm(FlaskForm):
+    username = StringField('the username of the user', validators=[Required()])
     submit = SubmitField('submit')

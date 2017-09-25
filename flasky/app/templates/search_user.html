@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Library Home{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1> Search User </h1>
+</div>
+<div>
+    {{ wtf.quick_form(form) }}
+</div>
+{% if users != [] %}
+<ul class="posts">
+    {% for user in users %}
+    <li class="post">
+        {% if current_user.is_lib() %}
+        <div class="post-thumbnail">
+            <a class="btn btn-danger" href="{{ url_for('main.del_user', user_id=user.id) }}">Del</a>
+        </div>
+        {% endif %}
+        <div class="post-content">
+            <div class="post-date">BorrowNumber : {{ user.borrowed_number }}<br>
+                Confirmed : {{ user.confirmed }}
+            </div>
+           <a href="{{ url_for('main.user', username=user.username) }}"> 
+               <div class="post-author">UserName: {{ user.username }}
+                   </div> 
+        </a>
+            <div class="post-body">RealName: {{ user.realname }}</div>
+        </div>
+    </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

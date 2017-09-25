@@ -1,16 +1,17 @@
 from flask import render_template, redirect, url_for, session, abort, flash
 from . import main
 from ..import db
-from ..models import Role, User, Book, Book_entity
+from ..models import Role, User, Book, Book_entity, Record
 from .forms import EditProfileForm, EditProfileAdminForm,\
-    AddBookForm, SearchForm, EditBookForm, BorrowForm, ReturnForm
+    AddBookForm, SearchBookForm, EditBookForm, BorrowForm,\
+    ReturnForm, SearchUserForm
 from flask_login import login_required, current_user
 from ..decorators import admin_required, lib_required
 
 
 @main.route('/', methods=['GET', 'POST'])
 def index(books=[]):
-    form = SearchForm()
+    form = SearchBookForm()
     if form.validate_on_submit():
         bookname = form.input_.data
         session['input_data'] = bookname
@@ -186,3 +187,39 @@ def return_book():
             return redirect(url_for('main.return_book'))
     else:
         return render_template('return_book.html', form=form)
+
+
+@main.route('/search_user', methods=['GET', 'POST'])
+@login_required
+@lib_required
+def search_user(users=[]):
+    form = SearchUserForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        users = User.query.filter(User.username.ilike('%'+username+'%')).all()
+        return render_template('search_user.html', form=form, users=users)
+    return render_template('search_user.html', form=form, users=users)
+
+
+@main.route('/check_records', methods=['GET', 'POST'])
+@login_required
+@lib_required
+def check_records():
+    records = Record.query.order_by(Record.returned.desc()).all()
+    return render_template('check_records.html', records=records)
+
+
+@main.route('/del_user/<user_id>', methods=['GET', 'POST'])
+@login_required
+@lib_required
+def del_user(user_id):
+    user = User.query.filter_by(id=user_id).first_or_404()
+    if(user.borrowed_number is 0):
+        records = user.Records
+        for record in records:
+            db.session.delete(record)
+        flash("delete the user " + user.username + " successful")
+        db.session.delete(user)
+    else:
+        flash("delete the user unsuccessfully")
+    return redirect(url_for('main.search_user'))

@@ -44,7 +44,8 @@
                     <a href="{{ url_for('main.return_book') }}">Return Book</a>
                 </li>
                 <li>
-                    
+                    <!-- 检查已借出去的书,并着重显示逾期未还的书的信息 -->
+                    <a href="{{ url_for('main.check_records')}}">Check Records</a>
                 </li>
                 </ul>
                 </li>
@@ -53,7 +54,7 @@
 
                 {% if current_user.is_lib() %}
                 <li>
-                    
+                    <a href="{{ url_for('main.search_user')}}">Search User</a>
                 </li>
                 {% endif %}
             </ul>
