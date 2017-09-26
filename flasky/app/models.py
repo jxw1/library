@@ -196,6 +196,15 @@ class Book(db.Model):
                                         lazy='dynamic',
                                         cascade='all, delete-orphan')
 
+    @staticmethod
+    def create_entity():
+        books = Book.query.all()
+        for book in books:
+            for i in range(book.totalNumber):
+                book_entity = Book_entity(book_id=book.id)
+                db.session.add(book_entity)
+        db.session.commit()
+
 
 class Record(db.Model):
     __tablename__ = "records"
