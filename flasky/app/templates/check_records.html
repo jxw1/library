@@ -1,3 +1,31 @@
 {% extends "base.html" %}
 
 {% block title %} Total Records  {% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Show The Records</h1>
+    <ul class='posts'>
+        {% for record in records %}
+        <li class="post">
+                <div class="post-thumbnail">
+                    </div>
+            <div class="post-content">
+                <div class="post-date">
+                    BorrowTime: {{ record.borrow_time }}
+                    <br>
+                    EndTime :{{ record.end_time }}
+                    <br>
+                    Returned: {{ record.returned }}</div>
+            
+           
+                <div class="post-author">SequenceNumber: {{ record.sequence }}</div>
+                <a href="{{ url_for('main.user', username= record.user.username) }}">
+            <div class="post-body">Borrower: {{ record.user.username }}</div>
+            </a>
+        </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
